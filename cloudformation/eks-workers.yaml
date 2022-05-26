@@ -107,11 +107,11 @@ Parameters:
   NodeAutoScalingGroupDesiredCapacity:
     Description: Desired capacity of Node Group ASG.
     Type: Number
-    Default: 3
+    Default: 1
   NodeVolumeSize:
     Description: Node volume size
     Type: Number
-    Default: 20
+    Default: 30
   ClusterName:
     Description: >-
       The cluster name provided when the cluster was created. If it is

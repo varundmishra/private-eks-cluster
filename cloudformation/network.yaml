@@ -14,13 +14,13 @@ Parameters:
 Mappings:
   SubnetConfig:
     VPC:
-      CIDR: "10.0.0.0/16"
+      CIDR: "10.241.176.0/20"
     Private1:
-      CIDR: "10.0.2.0/24"
+      CIDR: "10.241.185.0/24"
     Private2:
-      CIDR: "10.0.4.0/24"
+      CIDR: "10.241.187.0/24"
     Private3:
-      CIDR: "10.0.8.0/24"
+      CIDR: "10.241.189.0/24"
 
   AZRegions:
     ap-northeast-1:
@@ -270,10 +270,38 @@ Resources:
         - !Ref PrivateSubnet3
       VpcId: !Ref PrivateEKSVPC
 
+  EC2MessagesEndpoint:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.ec2messages"
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !GetAtt EndpointSecurityGroup.GroupId
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      VpcId: !Ref PrivateEKSVPC
+
   CWLogsEndpoint:
     Type: "AWS::EC2::VPCEndpoint"
     Properties:
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.logs"
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !GetAtt EndpointSecurityGroup.GroupId
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      VpcId: !Ref PrivateEKSVPC
+
+  SecretsManagerEndpoint:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.secretsmanager"
       VpcEndpointType: Interface
       PrivateDnsEnabled: true
       SecurityGroupIds:
@@ -297,6 +325,35 @@ Resources:
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
       VpcId: !Ref PrivateEKSVPC
+
+  ELBEndpoint:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.elasticloadbalancing"
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !GetAtt EndpointSecurityGroup.GroupId
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      VpcId: !Ref PrivateEKSVPC
+
+  RDSEndpoint:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.rds"
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !GetAtt EndpointSecurityGroup.GroupId
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      VpcId: !Ref PrivateEKSVPC
+
 
   STSEndpoint:
     Type: "AWS::EC2::VPCEndpoint"
@@ -339,6 +396,105 @@ Resources:
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
       VpcId: !Ref PrivateEKSVPC
+
+  MonitoringEndpoint:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.monitoring"
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !GetAtt EndpointSecurityGroup.GroupId
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      VpcId: !Ref PrivateEKSVPC
+
+  KMSEndpoint:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.kms"
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !GetAtt EndpointSecurityGroup.GroupId
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      VpcId: !Ref PrivateEKSVPC
+
+  CCEndpoint:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.codecommit"
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !GetAtt EndpointSecurityGroup.GroupId
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      VpcId: !Ref PrivateEKSVPC
+
+  GCCEndpoint:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.git-codecommit"
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !GetAtt EndpointSecurityGroup.GroupId
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      VpcId: !Ref PrivateEKSVPC
+
+  CBEndpoint:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.codebuild"
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !GetAtt EndpointSecurityGroup.GroupId
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      VpcId: !Ref PrivateEKSVPC
+
+  CAREndpoint:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.codeartifact.repositories"
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !GetAtt EndpointSecurityGroup.GroupId
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      VpcId: !Ref PrivateEKSVPC
+
+  CAAEndpoint:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.codeartifact.api"
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !GetAtt EndpointSecurityGroup.GroupId
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      VpcId: !Ref PrivateEKSVPC
+
 
 Outputs:
   VPCId:
