@@ -4,15 +4,15 @@ set -e
 source variables.sh 
 
 # Check S3 bucket exists, if not create it
-if [[ $(aws s3 ls | grep ${S3_STAGING_LOCATION}) ]]; then
-    echo "Using S3 bucket ${S3_STAGING_LOCATION} for cloudformation and kubectl binary"
-else
-    aws s3api create-bucket \
-        --bucket ${S3_STAGING_LOCATION} \
-        --create-bucket-configuration LocationConstraint=${REGION} \
-        --region ${REGION}
-    echo "Created S3 bucket ${S3_STAGING_LOCATION} for cloudformation and kubectl binary"
-fi
+#if [[ $(aws s3 ls | grep ${S3_STAGING_LOCATION}) ]]; then
+#    echo "Using S3 bucket ${S3_STAGING_LOCATION} for cloudformation and kubectl binary"
+#else
+#    aws s3api create-bucket \
+#        --bucket ${S3_STAGING_LOCATION} \
+#        --create-bucket-configuration LocationConstraint=${REGION} \
+#        --region ${REGION}
+#    echo "Created S3 bucket ${S3_STAGING_LOCATION} for cloudformation and kubectl binary"
+#fi
 
 # aws cloudformation deploy <-- create a network in which to put the EKS cluster
 # set SUBNETS, SECURITY_GROUPS, WORKER_SECURITY_GROUPS, VPC_ID appropriately
