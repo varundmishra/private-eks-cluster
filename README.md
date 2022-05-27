@@ -18,30 +18,21 @@ To do this it will create:
 
 Once completed you can (from within the VPC) communicate with your EKS cluster and see a list of running worker nodes.
 
-## Justification
-
-To create an EKS cluster that is fully private and running within a VPC with no internet connection can be a challenge.  A couple of challenges prevent this from happening easily.
-
-First the EKS Cluster resource in CloudFormation does not allow you to specify that you want a private-only endpoint.  [Terraform](https://www.terraform.io/docs/providers/aws/r/eks_cluster.html) currently supports this configuration.
-
-Second, the EKS worker nodes, when they start need to communicate with the EKS master nodes and to do that they require details such as the CA certificate for the EKS master nodes.  Normally, at bootstrap, the EC2 instance can query the EKS control plane and retrieve these details however the EKS service currently does not have support for [VPC endpoints for the EKS control plane](https://github.com/aws/containers-roadmap/issues/298).  Managed node groups can be an offset for this but you may want to customize the underlying host or use a custom AMI.
-
-Third, once launched the instance role of the EC2 worker nodes must be registered with the EKS master node to allow the nodes to communicate with the cluster.
-
-To solve these issues this project takes advantage of all of the flexibility the EKS service makes available to script the creation of a completely private EKS cluster.
-
-> Note that this repository is here for illustration and demonstration purposes only.  The hope is that this repository aids in helping your understanding of how EKS works to manage Kubernetes clusters on your behalf.  It is not intended as production code and should not be adopted as such.
-
 ## Quickstart
 
 1. Clone this repository to a machine that has CLI access to your AWS account.
-1. Edit the values in `variables.sh`
+2. Edit the values in `variables.sh`
 
     1. Set `CLUSTER_NAME` to be a name you choose
-    1. Set `REGION` to be an AWS region you prefer, such as us-east-2, eu-west-2, or eu-central-1
-    1. Edit `AMI_ID` to be correct for your region
-
-1. Execute `launch_all.sh`
+    2. Set `REGION` to be an AWS region you prefer, such as us-east-2, eu-west-2, or eu-central-1
+    3. Edit `AMI_ID` to be correct for your region
+    4. Ensure you have the right Kubernetes version set by updating `VERSION`
+    5. Edit/Update `PRIVATE_VPC_CIDR` of your choice
+    6. Edit/Update `PRIVATE_SUBNET1_CIDR` of your choice
+    7. Edit/Update `PRIVATE_SUBNET2_CIDR` of your choice
+    8. Edit/Update `PRIVATE_SUBNET3_CIDR` of your choice
+   
+3. Execute `launch_all.sh`
 
 ## Getting started
 
@@ -56,6 +47,7 @@ These variables are:
  - AMI_ID - the region-specific AWS EKS worker AMI to use. (See here for the list of managed AMIs)[https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html]
  - INSTANCE_TYPE - the instance type to be used for the worker nodes
  - S3_STAGING_LOCATION - an existing S3 bucket name and optional prefix to which CloudFormation templates and a kubectl binary will be uploaded
+ ### Not Tested
  - ENABLE_FARGATE - set to 'true' to enable fargate support, disabled by default as this requires the proxy to be a transparent proxy 
  - FARGATE_PROFILE_NAME - the name for the Fargate profile for running EKS pods on Fargate
  - FARGATE_NAMESPACE - the namespace to match pods to for running EKS pods on Fargate. You must also create this inside the cluster with 'kubectl create namespace fargate' and then launch the pod into that namespace for Fargate to be the target
@@ -75,19 +67,19 @@ After, enter the output of the proxy endpoint service name into the `variables.s
 
  After this is completed you will have an EKS cluster that you can review using the AWS console or CLI. You can also remotely access your VPC using an Amazon WorkSpaces, VPN, or similar means. Using the `kubectl` client you should then see something similar to:
 
- ```bash
- [ec2-user@ip-10-10-40-207 ~]$ kubectl get nodes
+```
+[ec2-user@ip ~]$ kubectl get nodes
 NAME                                          STATUS   ROLES    AGE   VERSION
 ip-10-0-2-186.eu-central-1.compute.internal   Ready    <none>   45m   v1.13.8-eks-cd3eb0
 ip-10-0-4-219.eu-central-1.compute.internal   Ready    <none>   45m   v1.13.8-eks-cd3eb0
-ip-10-0-8-46.eu-central-1.compute.internal    Ready    <none>   45m   v1.13.8-eks-cd3eb0
-[ec2-user@ip-10-10-40-207 ~]$ kubectl get ds -n kube-system
+
+[ec2-user@ip ~]$ kubectl get ds -n kube-system
 NAME         DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
 aws-node     3         3         3       3            3           <none>          52m
 kube-proxy   3         3         3       3            3           <none>          52m
 ```
 
-There you go - you now have an EKS cluster in a private VPC!
+**There you go - you now have an EKS cluster in a private VPC!**
 
 ## Code Explained
 
@@ -117,67 +109,37 @@ When they first launch the EC2 worker nodes will use the CA certificate and EKS 
 
 When the CloudFormation template has been applied and the user data has executed on the EC2 worker nodes the shell script will return and you should now have a fully formed EKS cluster running privately in a VPC.
 
-## EKS Under the covers
+## Delete Everything
+1. Ensure the values in `variables.sh` are correct
+2. Execute `delete_all.sh`
 
-Amazon EKS is managed upstream K8s. So all the requirements and capabilities of Kubernetes apply. This is to say that when you create an EKS cluster you are given either a private or public (or both) K8s master mode, managed for you as a service. When you create EC2 instances, hopefully as part of an auto scaling group, those nodes will need to be able to authenticate into the K8s master node and be managed by the master. The node runs the standard Kubelet and Docker daemon and will need the master's name and CA certificate. To do this the Kubelet will query the EKS service or you can provide these as arguments to the bootstrap.sh. After connecting to the master it will receive instruction to launch daemon sets. To do this Kubelet and Docker will need to authenticate themselves into ECR where the DS images are probably kept. Please note that the 1.13 version of Kubelet is compatible with VPC endpoints for ECR but 1.11 and 1.12 will require a proxy server to reach ecr.REGION.amazonaws.com. After pulling down the daemon sets your cluster should be stable and ready for use. For details about configuring proxy servers for Kubelet etc please check out the source code.
-
-## Development notes
----
-### configure proxy for docker daemon
-https://stackoverflow.com/questions/23111631/cannot-download-docker-images-behind-a-proxy
-
-### authenticate with ECR
-https://docs.aws.amazon.com/AmazonECR/latest/userguide/Registries.html#registry_auth
-
-```bash
-aws ecr get-login --region eu-west-1 --no-include-email
+## Managing the cluster
+1. You can create a bastion instance in any one of the Private subnets.
+2. Use the ami-id `ami-0ce29f1698cab2968` for creation, this ami consists of tools through which you can manage EKS.
+3. Ensure that you attach the IAM role `role-eks-bastion` while creating the instance.
+4. Select an existing security group that contains the name **EndpointSecurityGroup**
+5. Once the instance is ready, connect to the instance using SSM.
+6. Execute the below commands to export the below variables:
 ```
-
-### containers key to worker node operation
-602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni:v1.5.0
-602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.11.5
-602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/coredns:v1.1.3
-602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/pause-amd64:3.1
-
-### Docker unable to authenticate with ECR, couldn't get docker credential helper to work
-https://github.com/awslabs/amazon-ecr-credential-helper/issues/117
-
-Setting aws-node to pull image only if image is not present found success
-
-### Procedure to create a privte EKS cluster (by hand)
-
-1. Create a VPC with only private subnets
-1. Create VPC endpoints for dkr.ecr, ecr, ec2, s3
-1. Provide a web proxy for the EKS service API
-1. Create an EKS cluster in the private VPC
-1. Edit the aws-node daemonset to only pull images if not present
-```bash
-kubectl edit ds/aws-node -n kube-system
+export CLUSTER_NAME=eks-test-01
+export REGION=us-east-2
 ```
-1. Deploy the CFN template, specifying proxy url and security group granting access to VPC endpoints
-1. Add the worker instance role to the authentiation config map for the cluster
-```bash
-kubectl apply -f aws-auth-cm.yaml
+6. Create a new file `assume_role.sh` with below contents, this will be used to assume the role `role-terraform-global`:
 ```
-1. profit
-
-**Note** EKS AMI list is at https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
-
-**Note** Instructions to grant worker nodes access to the cluster https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
-
-### Sample http-proxy.conf for worker node to work with HTTP proxy 
-/etc/systemd/system/kubelet.service.d/http-proxy.conf
-[Service]
-Environment="https_proxy=http://vpce-001234f5aa16f2228-aspopn6a.vpce-svc-062e1dc8165cd99df.eu-west-1.vpce.amazonaws.com:3128"
-Environment="HTTPS_PROXY=http://vpce-001234f5aa16f2228-aspopn6a.vpce-svc-062e1dc8165cd99df.eu-west-1.vpce.amazonaws.com:3128"
-Environment="http_proxy=http://vpce-001234f5aa16f2228-aspopn6a.vpce-svc-062e1dc8165cd99df.eu-west-1.vpce.amazonaws.com:3128"
-Environment="HTTP_PROXY=http://vpce-001234f5aa16f2228-aspopn6a.vpce-svc-062e1dc8165cd99df.eu-west-1.vpce.amazonaws.com:3128"
-Environment="NO_PROXY=169.254.169.254,2FDA1234AA4491779F1DF905AEFCB647.yl4.eu-west-1.eks.amazonaws.com,ec2.eu-west-1.amazonaws.com"
-
-/usr/lib/systemd/system/docker.service.d/http-proxy.conf
-[Service]
-Environment="https_proxy=http://vpce-001234f5aa16f2228-aspopn6a.vpce-svc-062e1dc8165cd99df.eu-west-1.vpce.amazonaws.com:3128"
-Environment="HTTPS_PROXY=http://vpce-001234f5aa16f2228-aspopn6a.vpce-svc-062e1dc8165cd99df.eu-west-1.vpce.amazonaws.com:3128"
-Environment="http_proxy=http://vpce-001234f5aa16f2228-aspopn6a.vpce-svc-062e1dc8165cd99df.eu-west-1.vpce.amazonaws.com:3128"
-Environment="HTTP_PROXY=http://vpce-001234f5aa16f2228-aspopn6a.vpce-svc-062e1dc8165cd99df.eu-west-1.vpce.amazonaws.com:3128"
-Environment="NO_PROXY=169.254.169.254,2FDA1234AA4491779F1DF905AEFCB647.yl4.eu-west-1.eks.amazonaws.com,ec2.eu-west-1.amazonaws.com"
+REGION=$REGION
+ROLE=arn:aws:iam::948659541789:role/role-global-terraform
+echo "===== assuming permissions => $ROLE ====="
+KST=(`aws sts assume-role --role-arn $ROLE --role-session-name "ClusterDeploy" --query '[Credentials.AccessKeyId,Credentials.SecretAccessKey,Credentials.SessionToken]' --output text`)
+unset AWS_SECURITY_TOKEN
+export AWS_DEFAULT_REGION=$REGION
+export AWS_ACCESS_KEY_ID=${KST[0]}
+export AWS_SECRET_ACCESS_KEY=${KST[1]}
+export AWS_SESSION_TOKEN=${KST[2]}
+export AWS_SECURITY_TOKEN=${KST[2]}
+```
+7. Download the kubeconfig file created by our script stored as a SecureString in the parameter store by running the following commands:
+```
+mkdir /root/.kube
+aws --region=$REGION ssm get-parameter --name "/infra/EKS_KUBECONFIG" --with-decryption --output text --query Parameter.Value > /root/.kube/config
+chmod 400 /root/.kube/config   
+```
