@@ -10,6 +10,26 @@ Parameters:
     Description: The name of an endpoint service serving an HTTP proxy
     Type: String
 
+  VpcCIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.241.176.0/20
+
+  PrivateSubnet1CIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.241.185.0/24
+
+  PrivateSubnet2CIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.241.187.0/24
+
+  PrivateSubnet3CIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.241.189.0/24
+
 Conditions:
   CreateProxyEndpoint: !Not [ !Equals [ !Ref HttpProxyServiceName, "" ]]
 
@@ -57,6 +77,12 @@ Outputs:
   EndpointClientSecurityGroup:
     Description: Security group ID for the client of the VPC endpoints
     Value: !GetAtt Network.Outputs.EndpointClientSecurityGroup
+
+  EndpointSecurityGroup:
+    Description: Security group attched to VPC endpoints
+    Value: !GetAtt Network.Outputs.EndpointSecurityGroup.GroupId
+    Export:
+      Name: !Sub "${StackPrefix}-EndpointSecurityGroup"
 
   HttpProxyUrl:
     Condition: CreateProxyEndpoint

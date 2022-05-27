@@ -3,6 +3,7 @@ set -e
 
 source variables.sh 
 
+if [ -d "/root/.kube" ]; then rm -Rf /root/.kube; fi
 # Check S3 bucket exists, if not create it
 #if [[ $(aws s3 ls | grep ${S3_STAGING_LOCATION}) ]]; then
 #    echo "Using S3 bucket ${S3_STAGING_LOCATION} for cloudformation and kubectl binary"
@@ -28,13 +29,14 @@ aws cloudformation deploy \
     --region ${REGION} \
     --stack-name ${STACK_NAME} \
     --capabilities CAPABILITY_NAMED_IAM \
-    --parameter-overrides HttpProxyServiceName=${HTTP_PROXY_ENDPOINT_SERVICE_NAME} StackPrefix=${CLUSTER_NAME}
+    --parameter-overrides HttpProxyServiceName=${HTTP_PROXY_ENDPOINT_SERVICE_NAME} StackPrefix=${CLUSTER_NAME} VpcCIDR=${PRIVATE_VPC_CIDR} PrivateSubnet1CIDR=${PRIVATE_SUBNET1_CIDR} PrivateSubnet2CIDR=${PRIVATE_SUBNET2_CIDR} PrivateSubnet3CIDR=${PRIVATE_SUBNET3_CIDR}
 
 VPC_ID=`aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='VPCId'].OutputValue" --output text`
 SUBNETS=`aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='Subnets'].OutputValue" --output text`
 ROLE_ARN=`aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='MasterRoleArn'].OutputValue" --output text`
 MASTER_SECURITY_GROUPS=`aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='MasterSecurityGroup'].OutputValue" --output text`
 WORKER_SECURITY_GROUPS=`aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='EndpointClientSecurityGroup'].OutputValue" --output text`
+ENDPOINT_SECURITY_GROUPS=`aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='EndpointSecurityGroup'].OutputValue" --output text`
 EKS_CLUSTER_KMS_ARN=`aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='MasterKeyArn'].OutputValue" --output text`
 PROXY_URL=${HTTP_PROXY_ENDPOINT_SERVICE_NAME}
 if [ "${HTTP_PROXY_ENDPOINT_SERVICE_NAME}" != "" ]

@@ -132,6 +132,9 @@ Parameters:
   WorkerSecurityGroup:
     Description: Additional security group to grant to worker nodes.
     Type: 'AWS::EC2::SecurityGroup::Id'
+  EndpointSecurityGroup:
+    Description: The security group of the cluster control plane.
+    Type: 'AWS::EC2::SecurityGroup::Id'
   VpcId:
     Description: The VPC of the worker instances
     Type: 'AWS::EC2::VPC::Id'
@@ -279,6 +282,15 @@ Resources:
       Description: Allow pods to communicate with the cluster API Server
       GroupId: !Ref ClusterControlPlaneSecurityGroup
       SourceSecurityGroupId: !Ref NodeSecurityGroup
+      IpProtocol: tcp
+      ToPort: 443
+      FromPort: 443
+  ClusterControlPlaneSecurityGroupIngressFromEndpoint:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      Description: Allow VPC Endpoint SG to communicate with the cluster API Server
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      SourceSecurityGroupId: !Ref EndpointSecurityGroup
       IpProtocol: tcp
       ToPort: 443
       FromPort: 443

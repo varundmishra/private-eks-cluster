@@ -11,16 +11,36 @@ Parameters:
     Description: The name for the HTTP/S endpoint service
     Type: String
 
+  VpcCIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.241.176.0/20
+
+  PrivateSubnet1CIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.241.185.0/24
+
+  PrivateSubnet2CIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.241.187.0/24
+
+  PrivateSubnet3CIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.241.189.0/24
+
 Mappings:
   SubnetConfig:
     VPC:
-      CIDR: "10.241.176.0/20"
+      CIDR: !Ref VpcCIDR
     Private1:
-      CIDR: "10.241.185.0/24"
+      CIDR: !Ref PrivateSubnet1CIDR
     Private2:
-      CIDR: "10.241.187.0/24"
+      CIDR: !Ref PrivateSubnet2CIDR
     Private3:
-      CIDR: "10.241.189.0/24"
+      CIDR: !Ref PrivateSubnet3CIDR
 
   AZRegions:
     ap-northeast-1:
@@ -190,11 +210,11 @@ Resources:
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-          CidrIp: 10.241.176.0/20
+          CidrIp: !Ref VpcCIDR
         - IpProtocol: tcp
           FromPort: 3128
           ToPort: 3128
-          CidrIp: 10.241.176.0/20
+          CidrIp: !Ref VpcCIDR
 
   EndpointSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -213,11 +233,11 @@ Resources:
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-          CidrIp: 10.241.176.0/20
+          CidrIp: !Ref VpcCIDR
         - IpProtocol: tcp
           FromPort: 3128
           ToPort: 3128
-          CidrIp: 10.241.176.0/20
+          CidrIp: !Ref VpcCIDR
 
   S3APIEndpoint:
     Type: "AWS::EC2::VPCEndpoint"
@@ -370,7 +390,6 @@ Resources:
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
       VpcId: !Ref PrivateEKSVPC
-
 
   STSEndpoint:
     Type: "AWS::EC2::VPCEndpoint"
@@ -546,6 +565,12 @@ Outputs:
     Value: !GetAtt EndpointClientSecurityGroup.GroupId
     Export:
       Name: !Sub "${StackPrefix}-EndpointClientSecurityGroup"
+
+  EndpointSecurityGroup:
+    Description: Security group attched to VPC endpoints
+    Value: !GetAtt EndpointSecurityGroup.GroupId
+    Export:
+      Name: !Sub "${StackPrefix}-EndpointSecurityGroup"
 
   HttpProxyUrl:
     Description: The URL for the HTTP/S proxy
