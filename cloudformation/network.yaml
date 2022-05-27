@@ -32,16 +32,6 @@ Parameters:
     Default: 10.241.189.0/24
 
 Mappings:
-  SubnetConfig:
-    VPC:
-      CIDR: !Ref VpcCIDR
-    Private1:
-      CIDR: !Ref PrivateSubnet1CIDR
-    Private2:
-      CIDR: !Ref PrivateSubnet2CIDR
-    Private3:
-      CIDR: !Ref PrivateSubnet3CIDR
-
   AZRegions:
     ap-northeast-1:
       AZs: ["a", "b", "c"]
@@ -81,11 +71,7 @@ Resources:
     Properties:
       EnableDnsSupport: True
       EnableDnsHostnames: True
-      CidrBlock:
-        Fn::FindInMap:
-          - "SubnetConfig"
-          - "VPC"
-          - "CIDR"
+      CidrBlock: !Ref VpcCIDR
       Tags:
         - Key: "Name"
           Value: !Sub ${StackPrefix}-private-eks-vpc
@@ -98,11 +84,7 @@ Resources:
         Fn::Sub:
           - "${AWS::Region}${AZ}"
           - AZ: !Select [0, !FindInMap ["AZRegions", !Ref "AWS::Region", "AZs"]]
-      CidrBlock:
-        Fn::FindInMap:
-          - "SubnetConfig"
-          - "Private1"
-          - "CIDR"
+      CidrBlock: !Select [ 9, !Cidr [ !GetAtt PrivateEKSVPC.CidrBlock, 16, 8 ]]
       Tags:
         - Key: "Name"
           Value: !Join
@@ -119,11 +101,7 @@ Resources:
         Fn::Sub:
           - "${AWS::Region}${AZ}"
           - AZ: !Select [1, !FindInMap ["AZRegions", !Ref "AWS::Region", "AZs"]]
-      CidrBlock:
-        Fn::FindInMap:
-          - "SubnetConfig"
-          - "Private2"
-          - "CIDR"
+      CidrBlock: !Select [ 11, !Cidr [ !GetAtt PrivateEKSVPC.CidrBlock, 16, 8 ]]
       Tags:
         - Key: "Name"
           Value: !Join
@@ -140,11 +118,7 @@ Resources:
         Fn::Sub:
           - "${AWS::Region}${AZ}"
           - AZ: !Select [2, !FindInMap ["AZRegions", !Ref "AWS::Region", "AZs"]]
-      CidrBlock:
-        Fn::FindInMap:
-          - "SubnetConfig"
-          - "Private3"
-          - "CIDR"
+      CidrBlock: !Select [ 13, !Cidr [ !GetAtt PrivateEKSVPC.CidrBlock, 16, 8 ]]
       Tags:
         - Key: "Name"
           Value: !Join
@@ -526,7 +500,7 @@ Outputs:
 
   VPCCIDR:
     Description: "VPC CIDR block"
-    Value: !GetAtt PrivateEKSVPC.CidrBlock
+    Value: !Ref VpcCIDR
     Export:
       Name: !Sub "${StackPrefix}-PrivateEKSVPCCIDR"
 

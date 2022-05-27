@@ -80,9 +80,7 @@ Outputs:
 
   EndpointSecurityGroup:
     Description: Security group attched to VPC endpoints
-    Value: !GetAtt Network.Outputs.EndpointSecurityGroup.GroupId
-    Export:
-      Name: !Sub "${StackPrefix}-EndpointSecurityGroup"
+    Value: !GetAtt Network.Outputs.EndpointSecurityGroup
 
   HttpProxyUrl:
     Condition: CreateProxyEndpoint

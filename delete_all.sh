@@ -32,7 +32,7 @@ fi
 # Deleting the Master Stack
 if aws cloudformation describe-stacks --region ${REGION} --stack-name cf-${CLUSTER_NAME}-vpc ; then
   aws cloudformation delete-stack --stack-name cf-${CLUSTER_NAME}-vpc --region ${REGION}
-  aws cloudformation wait stack-delete-complete --region ${REGION} --stack-name cf-${CLUSTER_NAME}-worker
+  aws cloudformation wait stack-delete-complete --region ${REGION} --stack-name cf-${CLUSTER_NAME}-vpc
 else
   echo "Error: Unable to delete cf-${CLUSTER_NAME}-vpc stack. Stack already deleted or does not exist"
 fi
