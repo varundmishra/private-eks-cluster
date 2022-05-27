@@ -16,7 +16,7 @@ fi
 
 # aws cloudformation deploy <-- create a network in which to put the EKS cluster
 # set SUBNETS, SECURITY_GROUPS, WORKER_SECURITY_GROUPS, VPC_ID appropriately
-STACK_NAME=${CLUSTER_NAME}-vpc
+STACK_NAME=cf-${CLUSTER_NAME}-vpc
 aws cloudformation package \
     --s3-bucket ${S3_STAGING_LOCATION} \
     --output-template-file /tmp/packaged.yaml \

@@ -5,7 +5,7 @@ source variables.sh
 
 # aws cloudformation deploy <-- create a network in which to put the EKS cluster
 # set SUBNETS, SECURITY_GROUPS, WORKER_SECURITY_GROUPS, VPC_ID appropriately
-STACK_NAME=${CLUSTER_NAME}-vpc
+STACK_NAME=cf-${CLUSTER_NAME}-vpc
 
 VPC_ID=`aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='VPCId'].OutputValue" --output text`
 VPC_CIDR=`aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query "Stacks[0].Outputs[?OutputKey=='VPCCIDR'].OutputValue" --output text`
@@ -30,7 +30,7 @@ if [[ $ENABLE_FARGATE == "true" ]]; then
     # Deploy Fargate IAM permissions
     aws cloudformation deploy \
         --template-file cloudformation/fargate.yaml \
-        --stack-name ${CLUSTER_NAME}-fargate \
+        --stack-name cf-${CLUSTER_NAME}-fargate \
         --capabilities CAPABILITY_NAMED_IAM \
         --region ${REGION} \
         --parameter-overrides StackPrefix=${CLUSTER_NAME}
@@ -46,14 +46,14 @@ if [[ $ENABLE_FARGATE == "true" ]]; then
         --subnets ${SUBNETS_LIST} \
         --selectors namespace=${FARGATE_NAMESPACE}
 else
-    echo Staging kubectl to S3
-    curl -sLO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
-    aws s3 cp kubectl s3://${S3_STAGING_LOCATION}/kubectl
-    rm kubectl
+    # echo Staging kubectl to S3
+    # curl -sLO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+    # aws s3 cp kubectl s3://${S3_STAGING_LOCATION}/kubectl
+    # rm kubectl
 
     aws cloudformation deploy \
         --template-file cloudformation/eks-workers.yaml \
-        --stack-name ${CLUSTER_NAME}-worker \
+        --stack-name cf-${CLUSTER_NAME}-worker \
         --capabilities CAPABILITY_IAM \
         --region ${REGION} \
         --parameter-overrides ClusterControlPlaneSecurityGroup=${MASTER_SECURITY_GROUPS} \

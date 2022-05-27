@@ -186,6 +186,15 @@ Resources:
     Properties:
       GroupDescription: Security group to designate resources access to the VPC endpoints
       VpcId: !Ref PrivateEKSVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 10.241.176.0/20
+        - IpProtocol: tcp
+          FromPort: 3128
+          ToPort: 3128
+          CidrIp: 10.241.176.0/20
 
   EndpointSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -201,6 +210,14 @@ Resources:
           FromPort: 3128
           ToPort: 3128
           SourceSecurityGroupId: !GetAtt EndpointClientSecurityGroup.GroupId
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 10.241.176.0/20
+        - IpProtocol: tcp
+          FromPort: 3128
+          ToPort: 3128
+          CidrIp: 10.241.176.0/20
 
   S3APIEndpoint:
     Type: "AWS::EC2::VPCEndpoint"
@@ -480,21 +497,6 @@ Resources:
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
       VpcId: !Ref PrivateEKSVPC
-
-  CAAEndpoint:
-    Type: "AWS::EC2::VPCEndpoint"
-    Properties:
-      ServiceName: !Sub "com.amazonaws.${AWS::Region}.codeartifact.api"
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: true
-      SecurityGroupIds:
-        - !GetAtt EndpointSecurityGroup.GroupId
-      SubnetIds:
-        - !Ref PrivateSubnet1
-        - !Ref PrivateSubnet2
-        - !Ref PrivateSubnet3
-      VpcId: !Ref PrivateEKSVPC
-
 
 Outputs:
   VPCId:
