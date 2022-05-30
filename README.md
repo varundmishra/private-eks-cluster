@@ -115,13 +115,13 @@ When the CloudFormation template has been applied and the user data has executed
 
 ## Managing the cluster
 1. You can create a bastion instance in any one of the Private subnets.
-2. Use the ami-id `ami-0ce29f1698cab2968` for creation, this ami consists of tools through which you can manage EKS.
+2. Use the ami-id `ami-07cc29acf443f0439` for creation, this ami consists of tools through which you can manage EKS.
 3. Ensure that you attach the IAM role `role-eks-bastion` while creating the instance.
 4. Select an existing security group that contains the name **EndpointSecurityGroup**
 5. Once the instance is ready, connect to the instance using SSM.
 6. Execute the below commands to export the below variables:
 ```
-export CLUSTER_NAME=eks-test-01
+export CLUSTER_NAME=eks-piiano-sandbox-04
 export REGION=us-east-2
 ```
 6. Create a new file `assume_role.sh` with below contents, this will be used to assume the role `role-terraform-global`:
