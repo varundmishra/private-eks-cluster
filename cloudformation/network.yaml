@@ -351,19 +351,19 @@ Resources:
         - !Ref PrivateSubnet3
       VpcId: !Ref PrivateEKSVPC
 
-  RDSEndpoint:
-    Type: "AWS::EC2::VPCEndpoint"
-    Properties:
-      ServiceName: !Sub "com.amazonaws.${AWS::Region}.rds"
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: true
-      SecurityGroupIds:
-        - !GetAtt EndpointSecurityGroup.GroupId
-      SubnetIds:
-        - !Ref PrivateSubnet1
-        - !Ref PrivateSubnet2
-        - !Ref PrivateSubnet3
-      VpcId: !Ref PrivateEKSVPC
+  # RDSEndpoint:
+  #   Type: "AWS::EC2::VPCEndpoint"
+  #   Properties:
+  #     ServiceName: !Sub "com.amazonaws.${AWS::Region}.rds"
+  #     VpcEndpointType: Interface
+  #     PrivateDnsEnabled: true
+  #     SecurityGroupIds:
+  #       - !GetAtt EndpointSecurityGroup.GroupId
+  #     SubnetIds:
+  #       - !Ref PrivateSubnet1
+  #       - !Ref PrivateSubnet2
+  #       - !Ref PrivateSubnet3
+  #     VpcId: !Ref PrivateEKSVPC
 
   STSEndpoint:
     Type: "AWS::EC2::VPCEndpoint"
@@ -477,19 +477,19 @@ Resources:
         - !Ref PrivateSubnet3
       VpcId: !Ref PrivateEKSVPC
 
-  CAREndpoint:
-    Type: "AWS::EC2::VPCEndpoint"
-    Properties:
-      ServiceName: !Sub "com.amazonaws.${AWS::Region}.codeartifact.repositories"
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: true
-      SecurityGroupIds:
-        - !GetAtt EndpointSecurityGroup.GroupId
-      SubnetIds:
-        - !Ref PrivateSubnet1
-        - !Ref PrivateSubnet2
-        - !Ref PrivateSubnet3
-      VpcId: !Ref PrivateEKSVPC
+  # CAREndpoint:
+  #   Type: "AWS::EC2::VPCEndpoint"
+  #   Properties:
+  #     ServiceName: !Sub "com.amazonaws.${AWS::Region}.codeartifact.repositories"
+  #     VpcEndpointType: Interface
+  #     PrivateDnsEnabled: true
+  #     SecurityGroupIds:
+  #       - !GetAtt EndpointSecurityGroup.GroupId
+  #     SubnetIds:
+  #       - !Ref PrivateSubnet1
+  #       - !Ref PrivateSubnet2
+  #       - !Ref PrivateSubnet3
+  #     VpcId: !Ref PrivateEKSVPC
 
 Outputs:
   VPCId:
