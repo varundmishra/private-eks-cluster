@@ -18,12 +18,12 @@ export CLUSTER_CHECK=$(aws eks list-clusters | jq -r ".clusters" | grep ${CLUSTE
 if [ "$CLUSTER_CHECK" != "" ]; then
     echo "EKS Cluster Exists...Deleting the  Cluster..."
     aws eks delete-cluster --name=${CLUSTER_NAME} --region ${REGION}
-    while [ $(aws eks describe-cluster --name ${CLUSTER_NAME} --query 'cluster.status' --output text --region ${REGION}) == "DELETING" ]
+    while [ "$(aws eks describe-cluster --name ${CLUSTER_NAME} --query 'cluster.status' --output text --region ${REGION})" == "DELETING" ]
     do
-        echo Cluster ${CLUSTER_NAME} status: DELETING...
+        echo "Cluster ${CLUSTER_NAME} status: DELETING..."
         sleep 60
     done
-        echo Cluster ${CLUSTER_NAME} has been DELETED
+        echo "Cluster ${CLUSTER_NAME} has been DELETED"
     aws ssm delete-parameter --region ${REGION} --name /infra/EKS_KUBECONFIG
 #    eksctl utils update-cluster-endpoints --cluster=${CLUSTER_NAME} --private-access=true --region ${REGION} --public-access=true --approve
 #    aws eks update-kubeconfig --name ${CLUSTER_NAME} --region ${REGION}

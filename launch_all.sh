@@ -56,10 +56,10 @@ aws eks create-cluster \
 # wait for the cluster to create
 while [ $(aws eks describe-cluster --name ${CLUSTER_NAME} --query 'cluster.status' --output text --region ${REGION}) == "CREATING" ]
 do
-    echo Cluster ${CLUSTER_NAME} status: CREATING...
+    echo "Cluster ${CLUSTER_NAME} status: CREATING..."
     sleep 60
 done
-echo Cluster ${CLUSTER_NAME} is ACTIVE
+echo "Cluster ${CLUSTER_NAME} is ACTIVE"
 
 ISSUER_URL=$(aws eks describe-cluster --name $CLUSTER_NAME --query cluster.identity.oidc.issuer --output text --region $REGION)
 AWS_FINGERPRINT=9E99A48A9960B14926BB7F3B02E22DA2B0AB7280
